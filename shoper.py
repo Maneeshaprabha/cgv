@@ -17,12 +17,23 @@ def process_image(image_path):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     print("Converted to grayscale.")
 
-    # Apply thresholding for better OCR results
-    _, binary_image = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-    print("Applied binarization.")
+    # Apply bilateral filtering to reduce noise while keeping edges sharp
+    filtered_image = cv2.bilateralFilter(gray, 11, 17, 17)
+    print("Applied bilateral filtering.")
 
-    # Extract text from the binarized image
-    extracted_text = pytesseract.image_to_string(binary_image)
+    # Apply adaptive thresholding
+    adaptive_thresh = cv2.adaptiveThreshold(
+        filtered_image,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        11,
+        2
+    )
+    print("Applied adaptive thresholding.")
+
+    # Extract text from the processed image
+    extracted_text = pytesseract.image_to_string(adaptive_thresh)
     print("Extracted text using OCR.")
 
     return extracted_text
@@ -54,4 +65,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
