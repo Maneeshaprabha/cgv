@@ -1,39 +1,87 @@
 import cv2
 import pytesseract
+import numpy as np
+from tkinter import Tk, filedialog
 
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# Set the path to the Tesseract executable if needed
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
+
+def select_image():
+    """Open a file dialog to select an image file."""
+    Tk().withdraw()  # Close the root window
+    file_path = filedialog.askopenfilename(
+        title="Select an image file",
+        filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.tiff")]
+    )
+    return file_path
+
+def display_image(title, image):
+    """Display an image with a title."""
+    plt.figure(figsize=(10, 10))
+    plt.title(title)
+    if len(image.shape) == 3:
+        # Color image
+        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    else:
+        # Grayscale image
+        plt.imshow(image, cmap='gray')
+    plt.axis('off')
+    plt.show()
 
 def process_image(image_path):
-    # Load the image
+    """Process the image and extract text using OCR."""
+    # Read the image
     image = cv2.imread(image_path)
+    if image is None:
+        print("Error: Unable to read the image.")
+        return
 
     # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    print("Converted to grayscale.")
+   
 
-    # Apply thresholding for better OCR results
-    _, binary_image = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    # Apply Gaussian blur to reduce noise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    print("Applied Gaussian blur to reduce noise.")
 
-    # Display processing steps (optional)
-    cv2.imshow('Grayscale Image', gray)
-    cv2.imshow('Binary Image', binary_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
-    # Extract text from the binarized image
-    extracted_text = pytesseract.image_to_string(binary_image)
+    # Apply adaptive thresholding using a Gaussian weighted sum
+    adaptive_thresh = cv2.adaptiveThreshold(
+        blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+    print("Applied adaptive Gaussian thresholding.")
+ 
+    # Perform morphological transformations to improve text visibility
+    kernel = np.ones((3, 3), np.uint8)
+    morph = cv2.morphologyEx(adaptive_thresh, cv2.MORPH_CLOSE, kernel)
+    print("Applied morphological transformations.")
+
+    # Perform erosion and dilation to enhance text
+    eroded = cv2.erode(morph, kernel, iterations=1)
+    dilated = cv2.dilate(eroded, kernel, iterations=1)
+    print("Applied erosion and dilation.")
+    
+
+    # Extract text using Tesseract with specific configuration
+    custom_config = r'--oem 3 --psm 6'  # OEM 3 means default, PSM 6 assumes a single uniform block of text
+    extracted_text = pytesseract.image_to_string(dilated, config=custom_config)
+    print("Extracted text using OCR.")
+    print(extracted_text)  # Print the extracted text for debugging
 
     return extracted_text
 
 def main():
-    # Path to the receipt image
-    receipt_image_path = 'image/Recepts-5.png'  
-    # Process the image and extRact text
-    receipt_details = process_image(receipt_image_path)
+    """Main function to handle the receipt processing workflow."""
+    # Select an image file
+    image_path = select_image()
+    if not image_path:
+        print("No file selected.")
+        return
 
-    # Display the extracted details in the terminal
-    print("Extracted Receipt Details:")
-    print(receipt_details)
+    # Process the image and extract text
+    receipt_details = process_image(image_path)
+    # Optional: Save the extracted text to a file or further process it
 
 if __name__ == "__main__":
     main()
