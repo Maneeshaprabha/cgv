@@ -8,6 +8,16 @@ from tkinter import Tk, filedialog
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
 
 
+def resize_image(image, scale_percent, interpolation_method):
+    """Resize the image with specified interpolation method."""
+    width = int(image.shape[1] * scale_percent / 100)
+    height = int(image.shape[0] * scale_percent / 100)
+    dim = (width, height)
+    
+    resized_image = cv2.resize(image, dim, interpolation=interpolation_method)
+    return resized_image
+
+
 def process_image(image_path):
     """Process the image to improve OCR accuracy."""
     # Read the image from the file path
@@ -16,6 +26,10 @@ def process_image(image_path):
     if image is None:
         print("Error: Image not found.")
         return None
+    
+    # Optionally resize the image (e.g., 50% of the original size, using linear interpolation)
+    image = resize_image(image, scale_percent=50, interpolation_method=cv2.INTER_LINEAR)
+    print("Resized the image.")
 
     # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
