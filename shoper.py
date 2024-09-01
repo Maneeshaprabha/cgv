@@ -2,6 +2,7 @@ import cv2
 import pytesseract
 import numpy as np
 from tkinter import Tk, filedialog
+import language_tool_python
 
 # Set the path to the Tesseract executable if needed
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
@@ -117,6 +118,13 @@ def parse_receipt(text):
 
     return parsed_data
 
+def check_grammar(text):
+    """Check and correct grammar in the text using LanguageTool."""
+    tool = language_tool_python.LanguageTool('en-US')
+    matches = tool.check(text)
+    corrected_text = language_tool_python.utils.correct(text, matches)
+    return corrected_text
+
 def select_image():
     """Open a file dialog to select an image."""
     root = Tk()
@@ -143,8 +151,13 @@ def main():
     if extracted_text:
         print_text(extracted_text)
         
-        # Parse the extracted text
-        parsed_data = parse_receipt(extracted_text)
+        # Check and correct grammar
+        corrected_text = check_grammar(extracted_text)
+        print("Corrected Text:")
+        print(corrected_text)
+        
+        # Parse the corrected text
+        parsed_data = parse_receipt(corrected_text)
         print("Parsed Receipt Data:")
         print(parsed_data)
 
