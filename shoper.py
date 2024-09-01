@@ -2,7 +2,9 @@ import cv2
 import pytesseract
 import numpy as np
 from tkinter import Tk, filedialog
-import language_tool_python
+import matplotlib.pyplot as plt
+import language_tool_python  
+
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
 
@@ -15,8 +17,21 @@ def resize_image(image, scale_percent, interpolation_method):
     resized_image = cv2.resize(image, dim, interpolation=interpolation_method)
     return resized_image
 
+def display_image(title, image):
+    """Display an image using matplotlib."""
+    plt.figure(figsize=(10, 6))
+    if len(image.shape) == 3 and image.shape[2] == 3:
+        # Color image
+        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    else:
+        # Grayscale image
+        plt.imshow(image, cmap='gray')
+    plt.title(title)
+    plt.axis('off')
+    plt.show()
+
 def process_image(image_path):
-    """Process the image to improve OCR accuracy."""
+    """Process the image to improve OCR accuracy and visualize the steps."""
     # Read the image from the file path
     image = cv2.imread(image_path)
 
