@@ -3,7 +3,9 @@ import cv2
 import pytesseract
 import numpy as np
 from tkinter import Tk, filedialog
-import language_tool_python
+import matplotlib.pyplot as plt
+import language_tool_python  
+
 
 # Set the path to the Tesseract executable if needed
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
@@ -17,8 +19,21 @@ def resize_image(image, scale_percent, interpolation_method):
     resized_image = cv2.resize(image, dim, interpolation=interpolation_method)
     return resized_image
 
+def display_image(title, image):
+    """Display an image using matplotlib."""
+    plt.figure(figsize=(10, 6))
+    if len(image.shape) == 3 and image.shape[2] == 3:
+        # Color image
+        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    else:
+        # Grayscale image
+        plt.imshow(image, cmap='gray')
+    plt.title(title)
+    plt.axis('off')
+    plt.show()
+
 def process_image(image_path):
-    """Process the image to improve OCR accuracy."""
+    """Process the image to improve OCR accuracy and visualize the steps."""
     # Read the image from the file path
     image = cv2.imread(image_path)
 
@@ -31,25 +46,30 @@ def process_image(image_path):
 
     # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    display_image("Grayscale Image", gray)
     print("Converted to grayscale.")
    
     # Apply Gaussian blur to reduce noise
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    display_image("Blurred Image", blurred)
     print("Applied Gaussian blur to reduce noise.")
 
     # Apply adaptive thresholding using a Gaussian weighted sum
     adaptive_thresh = cv2.adaptiveThreshold(
         blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+    display_image("Adaptive Threshold Image", adaptive_thresh)
     print("Applied adaptive Gaussian thresholding.")
 
     # Perform morphological transformations to improve text visibility
     kernel = np.ones((3, 3), np.uint8)
     morph = cv2.morphologyEx(adaptive_thresh, cv2.MORPH_CLOSE, kernel)
+    display_image("Morphological Transformations", morph)
     print("Applied morphological transformations.")
 
     # Perform erosion and dilation to enhance text
     eroded = cv2.erode(morph, kernel, iterations=1)
     dilated = cv2.dilate(eroded, kernel, iterations=1)
+    display_image("Dilated Image", dilated)
     print("Applied erosion and dilation.")
 
     # Extract text using Tesseract with specific configuration
@@ -164,6 +184,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
 
