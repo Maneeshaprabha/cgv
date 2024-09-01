@@ -3,10 +3,8 @@ import pytesseract
 import numpy as np
 from tkinter import Tk, filedialog
 
-
 # Set the path to the Tesseract executable if needed
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
-
 
 def resize_image(image, scale_percent, interpolation_method):
     """Resize the image with specified interpolation method."""
@@ -17,7 +15,6 @@ def resize_image(image, scale_percent, interpolation_method):
     resized_image = cv2.resize(image, dim, interpolation=interpolation_method)
     return resized_image
 
-
 def process_image(image_path):
     """Process the image to improve OCR accuracy."""
     # Read the image from the file path
@@ -27,9 +24,8 @@ def process_image(image_path):
         print("Error: Image not found.")
         return None
     
-    # Optionally resize the image (e.g., 50% of the original size, using linear interpolation)
-    image = resize_image(image, scale_percent=50, interpolation_method=cv2.INTER_LINEAR)
-    print("Resized the image.")
+    # Optionally resize the image (e.g., 150% of the original size, using linear interpolation)
+    image = resize_image(image, 150, cv2.INTER_LINEAR)
 
     # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -62,12 +58,35 @@ def process_image(image_path):
 
     return extracted_text
 
-
 def print_text(text):
     """Print the extracted text."""
     print("Extracted Text:")
     print(text)
 
+    """Parse the extracted text into structured data."""
+    lines = text.splitlines()
+    parsed_data = {"header": [], "items": [], "footer": []}
+    
+    item_section = False
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        if "Cashier" in line or "Bill" in line:
+            parsed_data["header"].append(line)
+        elif "Sub Total" in line or "Cash" in line or "Change" in line:
+            parsed_data["footer"].append(line)
+        elif any(keyword in line for keyword in ["Qty", "Item", "Amount", "Price"]):
+            item_section = True
+            parsed_data["items"].append(line)
+        elif item_section:
+            parsed_data["items"].append(line)
+        else:
+            parsed_data["header"].append(line)
+    
+    return parsed_data
 
 def select_image():
     """Open a file dialog to select an image."""
@@ -94,6 +113,10 @@ def main():
     # Display the extracted text
     if extracted_text:
         print_text(extracted_text)
+        
+        # Parse the extracted text
+      
+       
 
 if __name__ == "__main__":
     main()
