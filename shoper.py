@@ -63,29 +63,58 @@ def print_text(text):
     print("Extracted Text:")
     print(text)
 
+def format_number(text):
+    """Format number with periods as decimal points, ensure two decimal places, and remove any additional spaces."""
+    try:
+        # Replace commas with periods and remove spaces
+        text = text.replace(',', '.').replace(' ', '')
+        # Convert text to a float
+        number = float(text)
+        # Format with two decimal places
+        formatted_number = f"{number:.2f}"
+        return formatted_number
+    except ValueError:
+        # If conversion fails, return the original text
+        return text.strip()
+
+def parse_receipt(text):
     """Parse the extracted text into structured data."""
     lines = text.splitlines()
     parsed_data = {"header": [], "items": [], "footer": []}
     
     item_section = False
+    in_item = False
 
     for line in lines:
         line = line.strip()
         if not line:
             continue
 
-        if "Cashier" in line or "Bill" in line:
+        # Identify sections based on keywords and patterns
+        if "Cashier" in line or "Bill" in line or "TAX INVOICE" in line or "CASH RECEIPT" in line:
             parsed_data["header"].append(line)
-        elif "Sub Total" in line or "Cash" in line or "Change" in line:
-            parsed_data["footer"].append(line)
-        elif any(keyword in line for keyword in ["Qty", "Item", "Amount", "Price"]):
+        elif "Sub Total" in line or "Total" in line or "Cash" in line or "Change" in line:
+            # Format numbers in the footer
+            formatted_line = ' '.join(format_number(part) if part.replace('.', '', 1).isdigit() else part for part in line.split())
+            parsed_data["footer"].append(formatted_line)
+        elif any(keyword in line for keyword in ["Qty", "Item", "Amount", "Price", "Description"]):
             item_section = True
-            parsed_data["items"].append(line)
+            # Format numbers in the item section
+            formatted_line = ' '.join(format_number(part) if part.replace('.', '', 1).isdigit() else part for part in line.split())
+            parsed_data["items"].append(formatted_line)
+            in_item = True
+        elif item_section and (line.startswith("Total") or line.startswith("Sub Total") or "Cash" in line):
+            item_section = False
+            # Format numbers in the footer
+            formatted_line = ' '.join(format_number(part) if part.replace('.', '', 1).isdigit() else part for part in line.split())
+            parsed_data["footer"].append(formatted_line)
         elif item_section:
-            parsed_data["items"].append(line)
+            # Format numbers in the item section
+            formatted_line = ' '.join(format_number(part) if part.replace('.', '', 1).isdigit() else part for part in line.split())
+            parsed_data["items"].append(formatted_line)
         else:
             parsed_data["header"].append(line)
-    
+
     return parsed_data
 
 def select_image():
@@ -115,8 +144,10 @@ def main():
         print_text(extracted_text)
         
         # Parse the extracted text
-      
-       
+        parsed_data = parse_receipt(extracted_text)
+        print("Parsed Receipt Data:")
+        print(parsed_data)
 
 if __name__ == "__main__":
     main()
+
