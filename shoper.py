@@ -1,19 +1,12 @@
+
 import cv2
 import pytesseract
 import numpy as np
 from tkinter import Tk, filedialog
 
+
 # Set the path to the Tesseract executable if needed
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
-
-def resize_image(image, scale_percent, interpolation_method):
-    """Resize the image with specified interpolation method."""
-    width = int(image.shape[1] * scale_percent / 100)
-    height = int(image.shape[0] * scale_percent / 100)
-    dim = (width, height)
-    
-    resized_image = cv2.resize(image, dim, interpolation=interpolation_method)
-    return resized_image
 
 def resize_image(image, scale_percent, interpolation_method):
     """Resize the image with specified interpolation method."""
@@ -33,7 +26,8 @@ def process_image(image_path):
         print("Error: Image not found.")
         return None
     
-    # Optionally resize the image (e.g., 50% of the original size, using linear interpolation)
+    # Optionally resize the image (e.g., 150% of the original size, using linear interpolation)
+    image = resize_image(image, 150, cv2.INTER_LINEAR)
 
     # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -71,6 +65,38 @@ def print_text(text):
     print("Extracted Text:")
     print(text)
 
+def parse_receipt(text):
+    """Parse the extracted text into structured data."""
+    lines = text.splitlines()
+    parsed_data = {"header": [], "items": [], "footer": []}
+    
+    item_section = False
+    in_item = False
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        # Identify sections based on keywords and patterns
+        if "Cashier" in line or "Bill" in line or "TAX INVOICE" in line or "CASH RECEIPT" in line:
+            parsed_data["header"].append(line)
+        elif "Sub Total" in line or "Total" in line or "Cash" in line or "Change" in line:
+            parsed_data["footer"].append(line)
+        elif any(keyword in line for keyword in ["Qty", "Item", "Amount", "Price", "Description"]):
+            item_section = True
+            parsed_data["items"].append(line)
+            in_item = True
+        elif item_section and (line.startswith("Total") or line.startswith("Sub Total") or "Cash" in line):
+            item_section = False
+            parsed_data["footer"].append(line)
+        elif item_section:
+            parsed_data["items"].append(line)
+        else:
+            parsed_data["header"].append(line)
+
+    return parsed_data
+
 def select_image():
     """Open a file dialog to select an image."""
     root = Tk()
@@ -96,6 +122,11 @@ def main():
     # Display the extracted text
     if extracted_text:
         print_text(extracted_text)
+        
+        # Parse the extracted text
+        parsed_data = parse_receipt(extracted_text)
+        print("Parsed Receipt Data:")
+        print(parsed_data)
 
 if __name__ == "__main__":
     main()
