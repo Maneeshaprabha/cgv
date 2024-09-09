@@ -10,9 +10,25 @@ This project is designed to extract text from receipt images using Optical Chara
 - **Data Visualization**: Visualizes the sales data using a horizontal bar chart.
 - **GUI Interface**: Allows users to select images using a simple file dialog.
 
+## Requirements
+
+- Python 3.x
+- OpenCV
+- NumPy
+- Tesseract OCR
+- Tkinter (for the file dialog)
+- Matplotlib (for visualization)
+
 ## Installation
 
 1. Clone the repository:
    ```bash
    git clone https://github.com/Maneeshaprabha/cgv.git
    cd your-repo-name
+2. Download and install the latest version of Python from [https://www.python.org/downloads/](https://www.python.org/downloads/). Ensure you check the box to add Python to your system's PATH.
+
+
+- **Windows**: Download and install Tesseract OCR from [Tesseract OCR for Windows](https://github.com/UB-Mannheim/tesseract/wiki).
+- **macOS**: Install via Homebrew:
+  ```bash
+  brew install tesseract
