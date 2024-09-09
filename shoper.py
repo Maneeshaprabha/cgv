@@ -4,6 +4,7 @@ import numpy as np
 from tkinter import Tk, filedialog
 import matplotlib.pyplot as plt
 
+
 # Set the path to the Tesseract executable if needed
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
 
