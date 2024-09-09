@@ -18,6 +18,15 @@ This project is designed to extract text from receipt images using Optical Chara
 - Tesseract OCR
 - Tkinter (for the file dialog)
 - Matplotlib (for visualization)
+  
+## Prerequisites
+
+Before running the project, make sure you have the following software and libraries installed:
+
+- **Python 3.x**: [Install Python](https://www.python.org/downloads/).
+- **Tesseract OCR**: [Install Tesseract](https://github.com/tesseract-ocr/tesseract) for your platform.
+- **Pip**: A package installer for Python (usually comes with Python).
+- **Git**: (Optional) to clone this repository, [Install Git](https://git-scm.com/).
 
 ## Installation
 
