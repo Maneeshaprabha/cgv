@@ -14,5 +14,5 @@ This project is designed to extract text from receipt images using Optical Chara
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Maneeshaprabha/cgv
+   git clone https://github.com/Maneeshaprabha/cgv.git
    cd your-repo-name
